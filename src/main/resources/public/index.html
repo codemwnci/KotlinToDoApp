@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VueJS / Kotlin ToDo App</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+</head>
+<body>
+
+    <div id="app">
+        <input type="text" @keyup.enter="addTodo">
+        <ul>
+            <li v-for="todo in todos">
+                <input type="checkbox" :checked="todo.done" @click="toggleCheck(todo)">
+                {{todo.text}}
+                <a href="#" v-if="todo.done" @click="deleteTodo(todo.id)">(delete)</a>
+            </li>
+        </ul>
+    </div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            todos: [
+                //{"text": "first", "done": false},
+                //{"text": "second", "done": true},
+                //{"text": "third", "done": false},
+            ]
+        },
+        methods: {
+            deleteTodo: function(id) {
+                axios.delete("http://localhost:9000/todo/"+id).then(response => {
+                    if (response.data = "ok") {
+                        for(var i = this.todos.length; i--;){
+	                        if (this.todos[i].id === id) this.todos.splice(i, 1);
+                        }
+                    }
+                });
+            },
+
+            addTodo: function(event) {
+                axios.post("http://localhost:9000/todo/", event.srcElement.value).then(response => {
+                    this.todos.push(response.data);
+                });
+                event.srcElement.value = "";
+            },
+
+            toggleCheck: function(todo) {
+                todo.done = !todo.done;
+                this.update(todo);
+            },
+
+            update: function(todo) {
+                axios.put("http://localhost:9000/todo/"+todo.id, {"text": todo.text, "done": todo.done}).then(response => {
+                    for(var i = this.todos.length; i--;){
+	                    if (this.todos[i].id === todo.id) {
+	                        this.todos[i].done = response.data.done;
+	                        this.todos[i].text = response.data.text;
+	                    }
+                    }
+                });
+            }
+        },
+        mounted() {
+            axios.get('http://localhost:9000/todo/').then(response => {
+                this.todos = response.data;
+            });
+        }
+    })
+</script>
+</body>
+</html>

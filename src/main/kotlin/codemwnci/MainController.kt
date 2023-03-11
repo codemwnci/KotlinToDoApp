@@ -37,7 +37,7 @@ fun main(args: Array<String>) {
             if (req.body().isNullOrEmpty()) badRequest("a todo cannot be blank")
 
             val todo = req.body()
-            val id = using(sessionOf(HikariCP.dataSource())) { session ->
+            val id = using(sessionOf(HikariCP.dataSource(), true)) { session ->
                 session.run(queryOf("insert into todo (text) values(?)", todo).asUpdateAndReturnGeneratedKey)
             }
 
